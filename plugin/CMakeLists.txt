@@ -24,6 +24,22 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(juce)
 
+# ixwebsocket: header-light C++ WebSocket client used by the plugin to
+# talk to the standalone over loopback. TLS is disabled because the
+# transport is 127.0.0.1 only.
+set(USE_TLS OFF CACHE BOOL "" FORCE)
+set(USE_OPEN_SSL OFF CACHE BOOL "" FORCE)
+set(USE_MBED_TLS OFF CACHE BOOL "" FORCE)
+set(USE_ZLIB OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    ixwebsocket
+    GIT_REPOSITORY https://github.com/machinezone/IXWebSocket.git
+    GIT_TAG        v11.4.5
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(ixwebsocket)
+
 # ---------------------------------------------------------------------------
 # AuMA audio plugin (AU + VST3).
 #
@@ -53,6 +69,8 @@ target_sources(auma_plugin
         Source/PluginEditor.cpp
         Source/Metrics/KWeighting.cpp
         Source/Metrics/LufsMeter.cpp
+        Source/Net/Protocol.cpp
+        Source/Net/WebSocketClient.cpp
 )
 
 target_compile_definitions(auma_plugin
@@ -68,6 +86,7 @@ target_link_libraries(auma_plugin
     PRIVATE
         juce::juce_audio_utils
         juce::juce_dsp
+        ixwebsocket
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_warning_flags

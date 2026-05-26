@@ -3,6 +3,8 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "Metrics/LufsMeter.h"
+#include "Net/Protocol.h"
+#include "Net/WebSocketClient.h"
 
 namespace auma {
 
@@ -10,14 +12,14 @@ namespace auma {
  * Skeleton processor for the AuMA plugin.
  *
  * `processBlock` is realtime-locked: no allocation, no locks, no IO,
- * no network. The current build is a pass-through; subsequent commits
- * add a lock-free FIFO into a worker thread that runs the LUFS meter
- * and a WebSocket client.
+ * no network. Audio samples are pushed into a lock-free FIFO; the
+ * worker thread drains it, runs the LUFS meter, and dispatches the
+ * telemetry frame over WebSocket.
  */
 class AumaProcessor : public juce::AudioProcessor {
 public:
     AumaProcessor();
-    ~AumaProcessor() override = default;
+    ~AumaProcessor() override;
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -42,18 +44,29 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
     metrics::LufsMeter& lufsMeter() noexcept { return lufsMeter_; }
+    bool isConnected() const noexcept { return wsClient_.isConnected(); }
 
 private:
+    void rebuildRegisterPayload();
+
     metrics::LufsMeter lufsMeter_;
+    net::WebSocketClient wsClient_;
+    juce::String instanceId_;
+
+    double currentSampleRate_ = 0.0;
+    int currentChannels_ = 0;
+    int metricsCounter_ = 0;
 
     class WorkerTimer : public juce::Timer {
     public:
         explicit WorkerTimer(AumaProcessor& owner) : owner_(owner) {}
-        void timerCallback() override { owner_.lufsMeter_.update(); }
+        void timerCallback() override { owner_.onWorkerTick(); }
 
     private:
         AumaProcessor& owner_;
     };
+
+    void onWorkerTick();
 
     WorkerTimer workerTimer_{*this};
 
