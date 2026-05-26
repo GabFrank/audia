@@ -12,7 +12,12 @@ license = { text = "GPL-3.0-only" }
 authors = [{ name = "AuMA project" }]
 dependencies = [
     "fastapi>=0.110",
-    "uvicorn[standard]>=0.27",
+    # Plain uvicorn (no [standard] extras). uvloop hangs at import inside
+    # PyInstaller --onefile bundles on macOS, and httptools/watchfiles are
+    # unnecessary on loopback traffic. asyncio + h11 + websockets is enough.
+    "uvicorn>=0.27",
+    "h11>=0.14",
+    "websockets>=12",
     "pydantic>=2.6",
 ]
 

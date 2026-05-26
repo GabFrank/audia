@@ -16,11 +16,18 @@ def main() -> None:
         level=settings.log_level.upper(),
         format="%(asctime)s %(levelname)s %(name)s — %(message)s",
     )
+    # Force the asyncio loop instead of uvloop. uvloop is a Cython
+    # extension that hangs at import inside PyInstaller --onefile bundles
+    # on macOS; asyncio is fast enough for the loopback traffic this
+    # sidecar handles.
     uvicorn.run(
         create_app(settings),
         host=settings.host,
         port=settings.port,
         log_level=settings.log_level,
+        loop="asyncio",
+        http="h11",
+        ws="websockets",
     )
 
 
