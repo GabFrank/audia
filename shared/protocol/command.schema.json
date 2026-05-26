@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://auma.dev/protocol/0.1/command.schema.json",
+  "title": "Command",
+  "description": "Server-to-plugin control message. Only `identify` is implemented in the slice; the rest are reserved.",
+  "type": "object",
+  "required": ["type", "command"],
+  "properties": {
+    "type": { "const": "command" },
+    "command": {
+      "type": "string",
+      "enum": ["identify", "startCapture", "setReference", "setRole"]
+    },
+    "targetInstanceId": {
+      "type": "string",
+      "description": "Optional. When absent the command applies to every connected instance."
+    },
+    "args": {
+      "type": "object",
+      "description": "Command-specific arguments. Free-form for now; each command will pin its own sub-schema as it is implemented.",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

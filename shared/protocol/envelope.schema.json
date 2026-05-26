@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://auma.dev/protocol/0.1/envelope.schema.json",
+  "title": "Envelope",
+  "description": "Common envelope every plugin↔standalone message must satisfy. The `type` field discriminates the concrete payload schema.",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["register", "metrics", "command"]
+    },
+    "protocolVersion": {
+      "type": "string",
+      "description": "Semantic version of the protocol. Plugins should send this on `register`. Defaults to '0.1' when absent.",
+      "default": "0.1"
+    }
+  }
+}

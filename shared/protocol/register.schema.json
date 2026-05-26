@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://auma.dev/protocol/0.1/register.schema.json",
+  "title": "Register",
+  "description": "Sent by a plugin instance immediately after the WebSocket handshake. Identifies the instance to the standalone so it can be reconciled across reconnects.",
+  "type": "object",
+  "required": ["type", "instanceId", "format", "role", "sampleRate", "channels"],
+  "properties": {
+    "type": { "const": "register" },
+    "protocolVersion": { "type": "string" },
+    "instanceId": {
+      "type": "string",
+      "description": "Stable UUID, persisted in the plugin state. Survives DAW project save/reload.",
+      "minLength": 1
+    },
+    "format": {
+      "type": "string",
+      "enum": ["AU", "VST3", "Standalone"],
+      "description": "Plugin format. Standalone is for headless testing."
+    },
+    "role": {
+      "type": "string",
+      "enum": ["track", "bus", "master"],
+      "description": "Position role of the instance in the DAW signal flow."
+    },
+    "trackName": {
+      "type": "string",
+      "description": "Best-effort track name. Falls back to a user label or auto-assignment when the host does not expose it."
+    },
+    "sampleRate": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "channels": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8
+    },
+    "isFirstInChain": {
+      "type": "boolean",
+      "description": "True when the instance is the first plugin slot on its track and therefore sees the raw signal."
+    },
+    "pluginVersion": {
+      "type": "string",
+      "description": "Semantic version of the plugin build."
+    }
+  },
+  "additionalProperties": false
+}

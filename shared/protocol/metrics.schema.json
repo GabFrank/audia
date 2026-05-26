@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://auma.dev/protocol/0.1/metrics.schema.json",
+  "title": "Metrics",
+  "description": "Lightweight live telemetry from a plugin instance. Pushed at ~2-4 Hz from the worker thread. The slice carries only momentary LUFS; additional fields will be added without breaking existing consumers.",
+  "type": "object",
+  "required": ["type", "instanceId", "timestamp", "metrics"],
+  "properties": {
+    "type": { "const": "metrics" },
+    "instanceId": { "type": "string", "minLength": 1 },
+    "timestamp": {
+      "type": "number",
+      "description": "Plugin wall-clock at capture time, milliseconds since Unix epoch."
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Open container so new metrics can be added without bumping the schema major version.",
+      "properties": {
+        "lufsMomentary": {
+          "type": ["number", "null"],
+          "description": "Momentary loudness per ITU-R BS.1770 / EBU R128 over the last 400 ms. Null when the window has not filled yet or when the input is silent (below -100 LUFS)."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
