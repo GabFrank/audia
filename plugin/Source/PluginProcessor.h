@@ -2,6 +2,8 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+#include "Metrics/LufsMeter.h"
+
 namespace auma {
 
 /**
@@ -39,7 +41,22 @@ public:
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
+    metrics::LufsMeter& lufsMeter() noexcept { return lufsMeter_; }
+
 private:
+    metrics::LufsMeter lufsMeter_;
+
+    class WorkerTimer : public juce::Timer {
+    public:
+        explicit WorkerTimer(AumaProcessor& owner) : owner_(owner) {}
+        void timerCallback() override { owner_.lufsMeter_.update(); }
+
+    private:
+        AumaProcessor& owner_;
+    };
+
+    WorkerTimer workerTimer_{*this};
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AumaProcessor)
 };
 

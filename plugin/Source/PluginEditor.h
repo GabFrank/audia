@@ -6,7 +6,7 @@ namespace auma {
 
 class AumaProcessor;
 
-class AumaEditor : public juce::AudioProcessorEditor {
+class AumaEditor : public juce::AudioProcessorEditor, private juce::Timer {
 public:
     explicit AumaEditor(AumaProcessor& p);
     ~AumaEditor() override = default;
@@ -15,6 +15,11 @@ public:
     void resized() override;
 
 private:
+    void timerCallback() override;
+
+    AumaProcessor& processor_;
+    juce::Label lufsLabel_;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AumaEditor)
 };
 

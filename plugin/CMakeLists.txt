@@ -51,6 +51,8 @@ target_sources(auma_plugin
     PRIVATE
         Source/PluginProcessor.cpp
         Source/PluginEditor.cpp
+        Source/Metrics/KWeighting.cpp
+        Source/Metrics/LufsMeter.cpp
 )
 
 target_compile_definitions(auma_plugin

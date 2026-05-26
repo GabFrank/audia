@@ -9,9 +9,15 @@ AumaProcessor::AumaProcessor()
                          .withInput("Input", juce::AudioChannelSet::stereo(), true)
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)) {}
 
-void AumaProcessor::prepareToPlay(double, int) {}
+void AumaProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/) {
+    lufsMeter_.prepare(sampleRate, getTotalNumInputChannels());
+    workerTimer_.startTimerHz(30);
+}
 
-void AumaProcessor::releaseResources() {}
+void AumaProcessor::releaseResources() {
+    workerTimer_.stopTimer();
+    lufsMeter_.reset();
+}
 
 bool AumaProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
     const auto& mainOut = layouts.getMainOutputChannelSet();
@@ -22,9 +28,12 @@ bool AumaProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
 
 void AumaProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) {
     juce::ScopedNoDenormals noDenormals;
-    // Transparent pass-through. No allocation, no locks, no IO.
-    // Commit 8 pushes samples into a lock-free FIFO here.
-    juce::ignoreUnused(buffer);
+    // Realtime-safe path: push a read-only view of the input into the
+    // LUFS meter's lock-free FIFO. The worker thread drains it. Audio
+    // is untouched — the plugin is a transparent tap.
+    lufsMeter_.push(buffer.getArrayOfReadPointers(),
+                    buffer.getNumChannels(),
+                    buffer.getNumSamples());
 }
 
 juce::AudioProcessorEditor* AumaProcessor::createEditor() {
